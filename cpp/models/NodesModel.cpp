@@ -1,4 +1,5 @@
 #include <QPoint>
+#include <iostream>
 #include "NodesModel.h"
 #include "cpp/ViewModel.h"
 #include "cpp/dataObjects/Shape.h"
@@ -30,8 +31,8 @@ QVariant NodesModel::data(const QModelIndex &index, int role) const
     if(role == Roles::PosX) return QVariant(nodes_->at(index.row())->x);
     else if(role == Roles::PosY) return QVariant(nodes_->at(index.row())->y);
     else if(role == Roles::Display) return QVariant(nodes_->at(index.row())->text);
-    else if(role == Roles::Shape)
-        return QVariant::fromValue<QObject *>(nodes_->at(index.row())->shape);
+    else if(role == Roles::Shape) return QVariant::fromValue<QObject *>(nodes_->at(index.row())->shape);
+    else if(role == Roles::Type) return QVariant::fromValue<Node::NodeTypeEnum>(nodes_->at(index.row())->node_type);
     return QVariant();
 }
 
@@ -64,6 +65,12 @@ bool NodesModel::setData(const QModelIndex &index, const QVariant &value, int ro
         emit dataChanged(index, index, QList<int>(1, Roles::Shape));
         return true;
     }
+    else if(role == Roles::Type && value.canConvert<Node::NodeTypeEnum>())
+    {
+        nodes_->at(index.row())->node_type = value.value<Node::NodeTypeEnum>();
+        emit dataChanged(index, index, QList<int>(1, Roles::Type));
+        return true;
+    }
     return false;
 }
 
@@ -71,10 +78,29 @@ void NodesModel::tabPressed(int nodeIndex)
 {
     Node *parentNode = nodes_->at(nodeIndex);
     QMap<int, QVariant> map;
-    map[Roles::PosX] = parentNode->x + 150;
-    map[Roles::PosY] = parentNode->x + 100;
+    if(parentNode->node_type == Node::Entity)
+    {
+        map[Roles::PosX] = parentNode->x + 150;
+        map[Roles::PosY] = parentNode->y + 100;
+        map[Roles::Shape] = QVariant::fromValue<QObject*>(Constants::property_name_shape);
+        map[Roles::Type] = QVariant::fromValue<Node::NodeTypeEnum>(Node::PropertyName);
+    }
+    else
+    {
+        if(parentNode->node_type == Node::PropertyName)
+        {
+            map[Roles::PosX] = parentNode->x + 125;
+            map[Roles::PosY] = parentNode->y;
+        }
+        else //PropertyValue
+        {
+            map[Roles::PosX] = parentNode->x;
+            map[Roles::PosY] = parentNode->y + 75;
+        }
+        map[Roles::Shape] = QVariant::fromValue<QObject*>(Constants::property_value_shape);
+        map[Roles::Type] = QVariant::fromValue<Node::NodeTypeEnum>(Node::PropertyValue);
+    }
     map[Roles::Display] = "Test4";
-    map[Roles::Shape] = QVariant::fromValue<QObject*>(Constants::property_shape);
     insertRow(rowCount());
     QModelIndex index = this->index(nodes_->count() - 1);
     setItemData(index, map);

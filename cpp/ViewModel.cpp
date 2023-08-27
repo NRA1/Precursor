@@ -17,6 +17,7 @@ void ViewModel::sceneTapped(const QPointF &point)
     data[NodesModel::Roles::PosY] = point.y();
     data[NodesModel::Roles::Display] = "Test4";
     data[NodesModel::Roles::Shape] = QVariant::fromValue<QObject*>(Constants::entity_shape);
+    data[NodesModel::Roles::Type] = QVariant::fromValue<Node::NodeTypeEnum>(Node::NodeTypeEnum::Entity);
     nodes->setItemData(index, data);
 }
 

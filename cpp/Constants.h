@@ -11,7 +11,8 @@ public:
     static void initialize();
 
     static Shape *entity_shape;
-    static Shape *property_shape;
+    static Shape *property_name_shape;
+    static Shape *property_value_shape;
 };
 
 

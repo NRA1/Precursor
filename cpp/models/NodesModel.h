@@ -18,7 +18,8 @@ public:
             Display = Qt::ItemDataRole::DisplayRole,
             PosX = Qt::ItemDataRole::UserRole,
             PosY = Qt::ItemDataRole::UserRole + 1,
-            Shape = Qt::ItemDataRole::UserRole + 2
+            Shape = Qt::ItemDataRole::UserRole + 2,
+            Type = Qt::ItemDataRole::UserRole + 3
         };
     };
 
