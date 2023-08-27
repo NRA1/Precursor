@@ -39,6 +39,7 @@ protected:
     bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
 
 private:
+    static QSizeF calculateBoundingRect(const QString &text);
 
     QList<Node*> *nodes_;
 };

@@ -52,7 +52,7 @@ Item {
             text: parent.model.display
 
             onActiveFocusChanged: if (activeFocus) tapHandler.enabled = true;
-            onEditingFinished: parent.model.display = text;
+            onTextEdited: parent.model.display = text;
         }
 
         Keys.onDeletePressed: event => {

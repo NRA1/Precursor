@@ -9,3 +9,8 @@ Shape::Shape(QObject *parent) : QObject(parent)
 {
 
 }
+
+Shape::~Shape()
+{
+    delete path;
+}

@@ -1,9 +1,13 @@
 #include <QPoint>
 #include <iostream>
+#include <QGuiApplication>
+#include <QFont>
+#include <QFontMetrics>
 #include "NodesModel.h"
 #include "cpp/ViewModel.h"
 #include "cpp/dataObjects/Shape.h"
-#include "../Constants.h"
+#include "PropertyValuePath.h"
+#include "PropertyNamePath.h"
 
 NodesModel::NodesModel() : nodes_(new QList<Node *>())
 {
@@ -55,13 +59,22 @@ bool NodesModel::setData(const QModelIndex &index, const QVariant &value, int ro
     }
     else if(role == Roles::Display && value.canConvert<QString>())
     {
-        nodes_->at(index.row())->text = value.toString();
-        emit dataChanged(index, index, QList<int>(1, Roles::Display));
+        Node *node = nodes_->at(index.row());
+        node->text = value.toString();
+        if(node->shape != nullptr && node->shape->path != nullptr)
+            node->shape->path->resize(calculateBoundingRect(value.toString()));
+        QList<int> roles;
+        roles.push_back(Roles::Display);
+        roles.push_back(Roles::Shape);
+        emit dataChanged(index, index, roles);
         return true;
     }
     else if(role == Roles::Shape && value.canConvert<Shape *>())
     {
-        nodes_->at(index.row())->shape = value.value<Shape*>();
+        Node *node = nodes_->at(index.row());
+        node->shape = value.value<Shape*>();
+        if(node->shape->path != nullptr)
+            node->shape->path->resize(calculateBoundingRect(node->text));
         emit dataChanged(index, index, QList<int>(1, Roles::Shape));
         return true;
     }
@@ -82,7 +95,15 @@ void NodesModel::tabPressed(int nodeIndex)
     {
         map[Roles::PosX] = parentNode->x + 150;
         map[Roles::PosY] = parentNode->y + 100;
-        map[Roles::Shape] = QVariant::fromValue<QObject*>(Constants::property_name_shape);
+
+        Shape *shape = new Shape();
+        shape->stroke_color = "#1BB7F7";
+        shape->stroke_width = 2;
+        shape->fill_color = "#050A2E";
+        Path *path = new PropertyNamePath();
+        shape->path = path;
+
+        map[Roles::Shape] = QVariant::fromValue<QObject*>(shape);
         map[Roles::Type] = QVariant::fromValue<Node::NodeTypeEnum>(Node::PropertyName);
     }
     else
@@ -97,7 +118,15 @@ void NodesModel::tabPressed(int nodeIndex)
             map[Roles::PosX] = parentNode->x;
             map[Roles::PosY] = parentNode->y + 75;
         }
-        map[Roles::Shape] = QVariant::fromValue<QObject*>(Constants::property_value_shape);
+
+        Shape *shape = new Shape();
+        shape->stroke_color = "#1BB7F7";
+        shape->stroke_width = 2;
+        shape->fill_color = "#050A2E";
+        Path *path = new PropertyValuePath();
+        shape->path = path;
+
+        map[Roles::Shape] = QVariant::fromValue<QObject*>(shape);
         map[Roles::Type] = QVariant::fromValue<Node::NodeTypeEnum>(Node::PropertyValue);
     }
     map[Roles::Display] = "Test4";
@@ -138,4 +167,12 @@ bool NodesModel::removeRows(int row, int count, const QModelIndex &parent)
 NodesModel::~NodesModel()
 {
     delete nodes_;
+}
+
+QSizeF NodesModel::calculateBoundingRect(const QString &text)
+{
+    QFont font = QGuiApplication::font();
+    QFontMetrics metrics(font);
+    QRectF rect = metrics.boundingRect(text);
+    return rect.size();
 }

@@ -23,8 +23,14 @@ qt_add_executable(${PROJECT_NAME} cpp/Main.cpp
         cpp/dataObjects/Shape.h
         cpp/views/NodeShape.cpp
         cpp/views/NodeShape.h
-        cpp/Constants.cpp
-        cpp/Constants.h)
+        cpp/dataObjects/Path.cpp
+        cpp/dataObjects/Path.h
+        cpp/dataObjects/EntityPath.cpp
+        cpp/dataObjects/EntityPath.h
+        cpp/dataObjects/PropertyNamePath.cpp
+        cpp/dataObjects/PropertyNamePath.h
+        cpp/dataObjects/PropertyValuePath.cpp
+        cpp/dataObjects/PropertyValuePath.h)
 
 target_include_directories(${PROJECT_NAME} PUBLIC cpp/dataObjects cpp/views)
 

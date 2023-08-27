@@ -20,6 +20,8 @@ public:
 
 private slots:
     void onShapeChanged();
+    void onPathResized();
+    void onPathChanged();
 
 private:
     void recalculateSize();
