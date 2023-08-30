@@ -30,7 +30,9 @@ qt_add_executable(${PROJECT_NAME} cpp/Main.cpp
         cpp/dataObjects/PropertyNamePath.cpp
         cpp/dataObjects/PropertyNamePath.h
         cpp/dataObjects/PropertyValuePath.cpp
-        cpp/dataObjects/PropertyValuePath.h)
+        cpp/dataObjects/PropertyValuePath.h
+        cpp/dataObjects/Size.cpp
+        cpp/dataObjects/Size.h)
 
 target_include_directories(${PROJECT_NAME} PUBLIC cpp/dataObjects cpp/views)
 

@@ -9,7 +9,7 @@
 #include "PropertyValuePath.h"
 #include "PropertyNamePath.h"
 
-NodesModel::NodesModel() : nodes_(new QList<Node *>())
+NodesModel::NodesModel() : nodes_(new QList<Node *>()), node_bounds_(new Size(this))
 {
 }
 
@@ -32,11 +32,11 @@ QVariant NodesModel::data(const QModelIndex &index, int role) const
 {
     if(!index.isValid() || index.parent().isValid() || index.column() != 0 || index.row() > nodes_->count() - 1)
         return QVariant();
-    if(role == Roles::PosX) return QVariant(nodes_->at(index.row())->x);
-    else if(role == Roles::PosY) return QVariant(nodes_->at(index.row())->y);
-    else if(role == Roles::Display) return QVariant(nodes_->at(index.row())->text);
-    else if(role == Roles::Shape) return QVariant::fromValue<QObject *>(nodes_->at(index.row())->shape);
-    else if(role == Roles::Type) return QVariant::fromValue<Node::NodeTypeEnum>(nodes_->at(index.row())->node_type);
+    if(role == Roles::PosX) return QVariant(nodes_->at(index.row())->x());
+    else if(role == Roles::PosY) return QVariant(nodes_->at(index.row())->y());
+    else if(role == Roles::Display) return QVariant(nodes_->at(index.row())->text());
+    else if(role == Roles::Shape) return QVariant::fromValue<QObject *>(nodes_->at(index.row())->shape());
+    else if(role == Roles::Type) return QVariant::fromValue<Node::NodeTypeEnum>(nodes_->at(index.row())->nodeType());
     return QVariant();
 }
 
@@ -47,40 +47,44 @@ bool NodesModel::setData(const QModelIndex &index, const QVariant &value, int ro
 
     if(role == Roles::PosX && value.canConvert<int>())
     {
-        nodes_->at(index.row())->x = value.toInt();
+        nodes_->at(index.row())->setX(value.toInt());
         emit dataChanged(index, index, QList<int>(1, Roles::PosX));
+        recalculateNodeBounds();
         return true;
     }
     else if(role == Roles::PosY && value.canConvert<int>())
     {
-        nodes_->at(index.row())->y = value.toInt();
+        nodes_->at(index.row())->setY(value.toInt());
         emit dataChanged(index, index, QList<int>(1, Roles::PosY));
+        recalculateNodeBounds();
         return true;
     }
     else if(role == Roles::Display && value.canConvert<QString>())
     {
         Node *node = nodes_->at(index.row());
-        node->text = value.toString();
-        if(node->shape != nullptr && node->shape->path != nullptr)
-            node->shape->path->resize(calculateBoundingRect(value.toString()));
+        node->setText(value.toString());
+        if(node->shape() != nullptr && node->shape()->path() != nullptr)
+            node->shape()->path()->resize(calculateBoundingRect(value.toString()));
         QList<int> roles;
         roles.push_back(Roles::Display);
         roles.push_back(Roles::Shape);
         emit dataChanged(index, index, roles);
+        recalculateNodeBounds();
         return true;
     }
     else if(role == Roles::Shape && value.canConvert<Shape *>())
     {
         Node *node = nodes_->at(index.row());
-        node->shape = value.value<Shape*>();
-        if(node->shape->path != nullptr)
-            node->shape->path->resize(calculateBoundingRect(node->text));
+        node->setShape(value.value<Shape*>());
+        if(node->shape()->path() != nullptr)
+            node->shape()->path()->resize(calculateBoundingRect(node->text()));
         emit dataChanged(index, index, QList<int>(1, Roles::Shape));
+        recalculateNodeBounds();
         return true;
     }
     else if(role == Roles::Type && value.canConvert<Node::NodeTypeEnum>())
     {
-        nodes_->at(index.row())->node_type = value.value<Node::NodeTypeEnum>();
+        nodes_->at(index.row())->setNodeType(value.value<Node::NodeTypeEnum>());
         emit dataChanged(index, index, QList<int>(1, Roles::Type));
         return true;
     }
@@ -91,40 +95,30 @@ void NodesModel::tabPressed(int nodeIndex)
 {
     Node *parentNode = nodes_->at(nodeIndex);
     QMap<int, QVariant> map;
-    if(parentNode->node_type == Node::Entity)
+    if(parentNode->nodeType() == Node::Entity)
     {
-        map[Roles::PosX] = parentNode->x + 150;
-        map[Roles::PosY] = parentNode->y + 100;
+        map[Roles::PosX] = parentNode->x() + 150;
+        map[Roles::PosY] = parentNode->y() + 100;
 
-        Shape *shape = new Shape();
-        shape->stroke_color = "#1BB7F7";
-        shape->stroke_width = 2;
-        shape->fill_color = "#050A2E";
-        Path *path = new PropertyNamePath();
-        shape->path = path;
+        Shape *shape = new Shape("#1BB7F7", 2, "#050A2E", new PropertyNamePath());
 
         map[Roles::Shape] = QVariant::fromValue<QObject*>(shape);
         map[Roles::Type] = QVariant::fromValue<Node::NodeTypeEnum>(Node::PropertyName);
     }
     else
     {
-        if(parentNode->node_type == Node::PropertyName)
+        if(parentNode->nodeType() == Node::PropertyName)
         {
-            map[Roles::PosX] = parentNode->x + 125;
-            map[Roles::PosY] = parentNode->y;
+            map[Roles::PosX] = parentNode->x() + 125;
+            map[Roles::PosY] = parentNode->y();
         }
         else //PropertyValue
         {
-            map[Roles::PosX] = parentNode->x;
-            map[Roles::PosY] = parentNode->y + 75;
+            map[Roles::PosX] = parentNode->x();
+            map[Roles::PosY] = parentNode->y() + 75;
         }
 
-        Shape *shape = new Shape();
-        shape->stroke_color = "#1BB7F7";
-        shape->stroke_width = 2;
-        shape->fill_color = "#050A2E";
-        Path *path = new PropertyValuePath();
-        shape->path = path;
+        Shape *shape = new Shape("#1BB7F7", 2, "#050A2E", new PropertyValuePath());
 
         map[Roles::Shape] = QVariant::fromValue<QObject*>(shape);
         map[Roles::Type] = QVariant::fromValue<Node::NodeTypeEnum>(Node::PropertyValue);
@@ -147,12 +141,13 @@ bool NodesModel::insertRows(int row, int count, const QModelIndex &parent)
     for (int i = 0; i < count; ++i)
         nodes_->insert(row + i, new Node(this));
     endInsertRows();
+    recalculateNodeBounds();
     return true;
 }
 
 bool NodesModel::removeRows(int row, int count, const QModelIndex &parent)
 {
-    if (parent.isValid() || row + count > nodes_->count() - 1) return false;
+    if (parent.isValid() || row + count > nodes_->count()) return false;
     beginRemoveRows(parent, row, row + count);
     for (int i = 0; i < count; ++i)
     {
@@ -161,6 +156,7 @@ bool NodesModel::removeRows(int row, int count, const QModelIndex &parent)
         delete node;
     }
     endRemoveRows();
+    recalculateNodeBounds();
     return true;
 }
 
@@ -175,4 +171,29 @@ QSizeF NodesModel::calculateBoundingRect(const QString &text)
     QFontMetrics metrics(font);
     QRectF rect = metrics.boundingRect(text);
     return rect.size();
+}
+
+void NodesModel::recalculateNodeBounds()
+{
+    int width = 0;
+    int height = 0;
+    for (int i = 0; i < nodes_->count(); ++i)
+    {
+        Node *node = nodes_->operator[](i);
+        if(width < node->x() + node->width()) width = node->x() + node->width();
+        if(height < node->y() + node->height()) height = node->y() + node->height();
+    }
+    setNodeBounds(new Size(width, height, this));
+}
+
+Size *NodesModel::nodeBounds() const
+{
+    return node_bounds_;
+}
+
+void NodesModel::setNodeBounds(Size *nodeBounds)
+{
+    if(node_bounds_ != nullptr) delete node_bounds_;
+    node_bounds_ = nodeBounds;
+    emit nodeBoundsChanged();
 }

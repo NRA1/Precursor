@@ -4,6 +4,7 @@
       <option name="NAMESPACE_BRACE_PLACEMENT" value="2" />
       <option name="FUNCTION_BRACE_PLACEMENT" value="2" />
       <option name="BLOCK_BRACE_PLACEMENT" value="2" />
+      <option name="ADD_GETTER_PREFIX" value="false" />
     </Objective-C>
     <codeStyleSettings language="ObjectiveC">
       <option name="BLANK_LINES_AROUND_METHOD_IN_INTERFACE" value="0" />

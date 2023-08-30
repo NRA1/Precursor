@@ -30,7 +30,7 @@ Item {
             visible: !textInput.activeFocus
 
             text: parent.model.display
-            color: "#000000"
+            color: "#ffffff"
             anchors.centerIn: parent
 
             TapHandler {
@@ -47,6 +47,7 @@ Item {
             id: textInput
 
             visible: activeFocus
+            color: "#ffffff"
 
             anchors.centerIn: parent
             text: parent.model.display

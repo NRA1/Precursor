@@ -17,13 +17,7 @@ void ViewModel::sceneTapped(const QPointF &point)
     data[NodesModel::Roles::PosY] = point.y();
     data[NodesModel::Roles::Display] = "Test4";
 
-    Shape *shape = new Shape();
-    shape->fill_color = "#d367eb";
-    shape->stroke_width = 1;
-    shape->stroke_color = "#6151ea";
-    Path *path = new EntityPath();
-    shape->path = path;
-
+    Shape *shape = new Shape("#d367eb", 3, "#6151ea", new EntityPath());
     data[NodesModel::Roles::Shape] = QVariant::fromValue<QObject*>(shape);
     data[NodesModel::Roles::Type] = QVariant::fromValue<Node::NodeTypeEnum>(Node::NodeTypeEnum::Entity);
     nodes->setItemData(index, data);

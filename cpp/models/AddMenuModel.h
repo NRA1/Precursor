@@ -7,9 +7,9 @@
 class AddMenuModel : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(int posX MEMBER x NOTIFY xChanged)
-    Q_PROPERTY(int posY MEMBER y NOTIFY yChanged)
-    Q_PROPERTY(bool visible MEMBER visible NOTIFY visibleChanged)
+    Q_PROPERTY(int posX READ x WRITE setX NOTIFY xChanged)
+    Q_PROPERTY(int posY READ y WRITE setY NOTIFY yChanged)
+    Q_PROPERTY(bool visible READ visible WRITE setVisible NOTIFY visibleChanged)
 
 public:
     AddMenuModel();
@@ -17,14 +17,22 @@ public:
     Q_INVOKABLE void open(int x, int y);
     Q_INVOKABLE void focusLost();
 
-    int x;
-    int y;
-    bool visible;
+    int x() const;
+    void setX(int x);
+    int y() const;
+    void setY(int y);
+    bool visible() const;
+    void setVisible(bool visible);
 
 signals:
     void xChanged();
     void yChanged();
     void visibleChanged();
+
+private:
+    int x_;
+    int y_;
+    bool visible_;
 };
 
 

@@ -10,9 +10,6 @@ public:
     PropertyNamePath(QObject *parent = nullptr);
 
     void resize(const QSizeF &size);
-
-private:
-    QSizeF base_size_;
 };
 
 

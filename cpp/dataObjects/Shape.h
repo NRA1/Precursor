@@ -12,27 +12,37 @@ class Shape : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QColor strokeColor MEMBER stroke_color NOTIFY strokeColorChanged)
-    Q_PROPERTY(int strokeWidth MEMBER stroke_width NOTIFY strokeWidthChanged)
-    Q_PROPERTY(QColor fillColor MEMBER fill_color NOTIFY fillColorChanged)
-    Q_PROPERTY(Path *path MEMBER path NOTIFY pathChanged)
+    Q_PROPERTY(QColor strokeColor READ strokeColor WRITE setStrokeColor NOTIFY strokeColorChanged)
+    Q_PROPERTY(int strokeWidth READ strokeWidth WRITE setStrokeWidth NOTIFY strokeWidthChanged)
+    Q_PROPERTY(QColor fillColor READ fillColor WRITE setFillColor NOTIFY fillColorChanged)
+    Q_PROPERTY(Path *path READ path WRITE setPath NOTIFY pathChanged)
 
 public:
-    Shape();
-    Shape(QObject *parent);
+    Shape(QObject *parent = nullptr);
+    Shape(QColor stroke_color, int stroke_width, QColor fill_color, Path *path);
 
     ~Shape() override;
 
-    QColor stroke_color = QColor();
-    int stroke_width = 0;
-    QColor fill_color = QColor();
-    Path *path = nullptr;
+    const QColor &strokeColor() const;
+    void setStrokeColor(const QColor &strokeColor);
+    int strokeWidth() const;
+    void setStrokeWidth(int strokeWidth);
+    const QColor &fillColor() const;
+    void setFillColor(const QColor &fillColor);
+    Path *path() const;
+    void setPath(Path *path);
 
-    signals:
+signals:
     void strokeColorChanged();
     void strokeWidthChanged();
     void fillColorChanged();
     void pathChanged();
+
+private:
+    QColor stroke_color_ = QColor();
+    int stroke_width_ = 0;
+    QColor fill_color_ = QColor();
+    Path *path_ = nullptr;
 };
 
 

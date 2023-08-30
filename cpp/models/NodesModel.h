@@ -4,10 +4,12 @@
 
 #include <QAbstractListModel>
 #include "cpp/dataObjects/Node.h"
+#include "Size.h"
 
 class NodesModel : public QAbstractListModel
 {
     Q_OBJECT
+    Q_PROPERTY(Size *nodeBounds READ nodeBounds NOTIFY nodeBoundsChanged)
 
 public:
 
@@ -31,6 +33,12 @@ public:
     ~NodesModel();
 
     [[nodiscard]] int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+
+    Size *nodeBounds() const;
+
+signals:
+    void nodeBoundsChanged();
+
 protected:
     QHash<int, QByteArray> roleNames() const override;
     [[nodiscard]] QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
@@ -39,9 +47,13 @@ protected:
     bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
 
 private:
+private:
+    void setNodeBounds(Size *nodeBounds);
     static QSizeF calculateBoundingRect(const QString &text);
+    void recalculateNodeBounds();
 
     QList<Node*> *nodes_;
+    Size *node_bounds_;
 };
 
 
